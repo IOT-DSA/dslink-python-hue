@@ -1,0 +1,53 @@
+{
+  "$is": "node", 
+  "light_1": {
+    "$is": "node", 
+    "$name": "Hue LightStrips 1", 
+    "set_on": {
+      "$columns": [
+        {
+          "name": "Success", 
+          "type": "bool", 
+          "value": false
+        }
+      ], 
+      "$invokable": "write", 
+      "$is": "set_on", 
+      "$name": "@set", 
+      "$params": [
+        {
+          "name": "value", 
+          "type": "boolean", 
+          "value": false
+        }
+      ]
+    }
+  }, 
+  "set_speed": {
+    "$columns": [
+      {
+        "name": "Success", 
+        "type": "bool", 
+        "value": false
+      }
+    ], 
+    "$invokable": "config", 
+    "$is": "set_speed", 
+    "$name": "Set Poll Rate", 
+    "$params": [
+      {
+        "name": "Speed", 
+        "type": "number", 
+        "value": 1
+      }
+    ]
+  }, 
+  "test_one": {
+    "$is": "node", 
+    "$type": "number"
+  }, 
+  "test_two": {
+    "$is": "node", 
+    "$type": "number"
+  }
+}
