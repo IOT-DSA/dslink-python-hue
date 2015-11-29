@@ -24,7 +24,7 @@ class TemplateDSLink(dslink.DSLink):
 
     def start(self):
         self.profile_manager.create_profile("create_bridge")
-        self.profile_manager.register_set_callback("create_bridge", self.create_bridge)
+        self.profile_manager.register_callback("create_bridge", self.create_bridge)
 
         self.profile_manager.create_profile("set_hex")
         self.profile_manager.register_callback("set_hex", self.set_hex)
