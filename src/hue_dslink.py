@@ -58,12 +58,13 @@ class TemplateDSLink(dslink.DSLink):
         return root
 
     def create_lights(self):
-        root = self.get_root_node()
+        root = self.super_root
         if self.bridge == None:
             return
 
         for l in self.bridge.lights:
             node = dslink.Node("light_" + str(l.light_id), root)
+            node.set_transient(True);
             node.set_display_name(l.name)
             root.add_child(node)
 
@@ -183,7 +184,7 @@ class TemplateDSLink(dslink.DSLink):
             val = parameters.value
 
             metric = parameters.node.name
-            light = lights[id]
+            light = self.lights[id]
 
             setattr(light,metric,val)
         except Exception, e:
@@ -226,4 +227,4 @@ class TemplateDSLink(dslink.DSLink):
         reactor.callLater(self.speed, self.poll)
 
 if __name__ == "__main__":
-    TemplateDSLink(dslink.Configuration(name="PhilipsHue", responder=True, no_save_nodes=True))
+    TemplateDSLink(dslink.Configuration(name="PhilipsHue", responder=True))

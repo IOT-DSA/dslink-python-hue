@@ -1,0 +1,13 @@
+{
+  "$is": "node", 
+  "bridge": {
+    "$is": "set_bridge", 
+    "$type": "string", 
+    "$writable": "write"
+  }, 
+  "updateRate": {
+    "$is": "set_speed", 
+    "$type": "number", 
+    "$writable": "write"
+  }
+}
