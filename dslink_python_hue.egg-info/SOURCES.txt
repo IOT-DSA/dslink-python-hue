@@ -1,6 +1,0 @@
-setup.py
-dslink_python_hue.egg-info/PKG-INFO
-dslink_python_hue.egg-info/SOURCES.txt
-dslink_python_hue.egg-info/dependency_links.txt
-dslink_python_hue.egg-info/requires.txt
-dslink_python_hue.egg-info/top_level.txt
