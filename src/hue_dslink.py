@@ -51,12 +51,6 @@ class TemplateDSLink(dslink.DSLink):
         metric.set_profile("set_speed")
         metric.set_config("$writable", "write")
 
-        metric = dslink.Node("bridge", root)
-        metric.set_type("string")
-        root.add_child(metric)
-        metric.set_profile("set_bridge")
-        metric.set_config("$writable", "write")
-
         metric = dslink.Node("create_bridge", root)
         metric.set_profile("create_bridge")
         metric.set_invokable(dslink.Permission.CONFIG)
