@@ -33,7 +33,7 @@ class TemplateDSLink(dslink.DSLink):
         self.profile_manager.create_profile("set")
         self.profile_manager.register_set_callback("set", self.set_callback)
 
-        bridge = self.super_root.get("/")
+        bridge = self.super_root.get("/bridge")
         if bridge.value.has_value():
             self.bridge = Bridge(bridge.get_value())
             self.bridge.connect()
@@ -47,7 +47,7 @@ class TemplateDSLink(dslink.DSLink):
 
         metric = dslink.Node("updateRate", root)
         metric.set_type("number")
-        metric.set_value(0.1)
+        metric.set_value(1)
         root.add_child(metric)
         metric.set_profile("set_speed")
         metric.set_config("$writable", "write")
@@ -220,7 +220,7 @@ class TemplateDSLink(dslink.DSLink):
         if time.value.has_value():
             reactor.callLater(time.get_value(), self.poll)
         else:
-            reactor.callLater(0.1, self.poll)
+            reactor.callLater(1, self.poll)
 
 
 if __name__ == "__main__":

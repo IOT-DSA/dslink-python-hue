@@ -3,11 +3,13 @@
   "bridge": {
     "$is": "set_bridge", 
     "$type": "string", 
-    "$writable": "write"
+    "$writable": "write", 
+    "?value": "192.168.86.188"
   }, 
   "updateRate": {
     "$is": "set_speed", 
     "$type": "number", 
-    "$writable": "write"
+    "$writable": "write", 
+    "?value": 1
   }
 }
