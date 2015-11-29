@@ -3,3 +3,5 @@ nodes.json
 nodes.json.bak
 .idea/
 *.iml
+*.egg-info/
+dist/

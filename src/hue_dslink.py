@@ -13,19 +13,18 @@ converter = Converter()
     print(l)
 
 
-lights[1].xy = converter.hexToCIE1931('ff0000');'''
+lights[1].xy = converter.hexToCIE1931('ff0000')'''
 
 
 class TemplateDSLink(dslink.DSLink):
     def __init__(self, config):
         self.random = random.Random()
-        self.bridge = None
-        self.lights = None
+        self.bridges = {}
         dslink.DSLink.__init__(self, config)
 
     def start(self):
-        self.profile_manager.create_profile("set_bridge")
-        self.profile_manager.register_set_callback("set_bridge", self.set_bridge)
+        self.profile_manager.create_profile("create_bridge")
+        self.profile_manager.register_set_callback("create_bridge", self.create_bridge)
 
         self.profile_manager.create_profile("set_hex")
         self.profile_manager.register_callback("set_hex", self.set_hex)
@@ -33,12 +32,12 @@ class TemplateDSLink(dslink.DSLink):
         self.profile_manager.create_profile("set")
         self.profile_manager.register_set_callback("set", self.set_callback)
 
-        bridge = self.super_root.get("/bridge")
-        if bridge.value.has_value():
-            self.bridge = Bridge(bridge.get_value())
-            self.bridge.connect()
-            self.lights = self.bridge.get_light_objects('id')
-            self.create_lights()
+        for child_name in self.super_root.children:
+            child = self.super_root.children[child_name]
+            if "@type" in child.attributes and child.attributes["@type"] == "bridge" and child.value.has_value():
+                self.bridges[child_name] = Bridge(child.get_value())
+                self.bridges[child_name].connect()
+                self.create_lights(child)
 
         reactor.callLater(0.1, self.poll)
 
@@ -58,21 +57,41 @@ class TemplateDSLink(dslink.DSLink):
         metric.set_profile("set_bridge")
         metric.set_config("$writable", "write")
 
+        metric = dslink.Node("create_bridge", root)
+        metric.set_profile("create_bridge")
+        metric.set_invokable(dslink.Permission.CONFIG)
+        metric.set_parameters([
+            {
+                "name": "Bridge Name",
+                "type": "string"
+            },
+            {
+                "name": "Host",
+                "type": "string"
+            }
+        ])
+        metric.set_columns([
+            {
+                "name": "Success",
+                "type": "bool"
+            }
+        ])
+        root.add_child(metric)
+
         return root
 
-    def create_lights(self):
-        root = self.super_root
-        if self.bridge is None:
+    def create_lights(self, bridge):
+        if self.bridges[bridge.name] is None:
             return
 
-        for l in self.bridge.lights:
-            node = dslink.Node("light_" + str(l.light_id), root)
-            node.set_transient(True);
+        for l in self.bridges[bridge.name].get_light_objects("id"):
+            node = dslink.Node("light_" + str(l.light_id), bridge)
+            node.set_transient(True)
             node.set_display_name(l.name)
-            root.add_child(node)
+            bridge.add_child(node)
 
             set_hex = dslink.Node("set_hex", node)
-            set_hex.set_display_name("Set Color");
+            set_hex.set_display_name("Set Color")
             set_hex.set_parameters([
                 {
                     "name": "value",
@@ -139,14 +158,19 @@ class TemplateDSLink(dslink.DSLink):
             metric.set_config("$writable", "write")
             node.add_child(metric)
 
-        return root
+        return bridge
 
-    def set_bridge(self, parameters):
-        self.bridge = Bridge(parameters.value)
-        self.bridge.connect()
-        self.lights = self.bridge.get_light_objects('id')
+    def create_bridge(self, parameters):
+        bridge_name = str(parameters.params["Bridge Name"])
+        host = str(parameters.params["Host"])
+        bridge_node = dslink.Node(bridge_name, self.super_root)
+        bridge_node.set_attribute("@type", "bridge")
+        self.super_root.add_child(bridge_node)
+        self.bridges[bridge_name] = Bridge(host)
+        self.bridges[bridge_name].connect()
+        self.bridges[bridge_name].get_light_objects("id")
 
-        self.create_lights()
+        self.create_lights(bridge_node)
 
         return [
             [
@@ -157,9 +181,10 @@ class TemplateDSLink(dslink.DSLink):
     def set_hex(self, parameters):
         try:
             id = int(parameters.node.parent.name.split("_")[1])
+            bridge_name = parameters.node.parent.parent.name
             val = parameters.params["value"]
             val = val.replace("#", "")
-            self.lights[id].xy = converter.hexToCIE1931(val)
+            self.bridges[bridge_name].get_light_objects("id")[id].xy = converter.hexToCIE1931(val)
         except Exception, e:
             print "Exception: %s" % e
 
@@ -176,9 +201,10 @@ class TemplateDSLink(dslink.DSLink):
         try:
             id = int(parameters.node.parent.name.split("_")[1])
             val = parameters.value
+            bridge_name = str(parameters.node.parent.name)
 
             metric = parameters.node.name
-            light = self.lights[id]
+            light = self.bridges[bridge_name].get_light_objects("id")[id]
 
             setattr(light, metric, val)
         except Exception, e:
@@ -192,29 +218,30 @@ class TemplateDSLink(dslink.DSLink):
 
     def poll(self):
         # Poll data here and set the values
-
-        try:
-            if self.bridge is not None:
-                for l in self.bridge.lights:
+        for bridge_name in self.bridges:
+            bridge = self.bridges[bridge_name]
+            try:
+                for l in bridge.lights:
                     id = int(l.light_id)
-                    cur_node = "/light_" + str(l.light_id)
-                    self.super_root.get(cur_node + "/hue").set_value(self.lights[id].hue)
-                    self.super_root.get(cur_node + "/on").set_value(self.lights[id].on)
-                    self.super_root.get(cur_node + "/brightness").set_value(self.lights[id].brightness)
+                    cur_node = "/%s/light_%s" % (bridge_name, str(l.light_id))
+                    root = self.super_root
+                    lights = self.bridges[bridge_name].get_light_objects("id")
+                    root.get(cur_node + "/hue").set_value(lights[id].hue)
+                    root.get(cur_node + "/on").set_value(lights[id].on)
+                    root.get(cur_node + "/brightness").set_value(lights[id].brightness)
 
-                    self.super_root.get(cur_node + "/saturation").set_value(self.lights[id].saturation)
-                    self.super_root.get(cur_node + "/transitiontime").set_value(self.lights[id].transitiontime)
+                    root.get(cur_node + "/saturation").set_value(lights[id].saturation)
+                    root.get(cur_node + "/transitiontime").set_value(lights[id].transitiontime)
 
-                    self.super_root.get(cur_node + "/colormode").set_value(self.lights[id].colormode)
-                    self.super_root.get(cur_node + "/alert").set_value(self.lights[id].alert)
+                    root.get(cur_node + "/colormode").set_value(lights[id].colormode)
+                    root.get(cur_node + "/alert").set_value(lights[id].alert)
 
                     '''light_xy = lights[id].xy
                     print(float(lights[id].brightness))
                     hex = converter.CIE1931ToHex(light_xy[0], light_xy[1], bri=0.5)
                     self.super_root.get(cur_node+"/hex").set_value("#"+hex)'''
-
-        except Exception, e:
-            print "Poll Loop Exception: %s" % e
+            except Exception, e:
+                print "Poll Loop Exception: %s" % e
 
         time = self.super_root.get("/updateRate")
         if time.value.has_value():
