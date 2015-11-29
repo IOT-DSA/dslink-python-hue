@@ -9,6 +9,7 @@ setup(
     author_email="dennisk@dglogik.com",
     license="Apache 2.0",
     install_requires=[
-        "dslink >=0.5.8, <=0.6.0"
+        "dslink >=0.5.13, <=0.6.0",
+        "phue"
     ]
 )
