@@ -1,0 +1,21 @@
+{
+  "name": "dslink-python-hue",
+  "version": "0.1.0",
+  "description": "Philips HUE DSLink for Python",
+  "main": "src/TemplateDSLink.py",
+  "engines": {
+    "packages/bin/python": ">=2.7.0"
+  },
+  "getDependencies": [
+    "virtualenv packages",
+    "packages/bin/python setup.py install"
+  ],
+  "configs": {
+    "broker": {
+      "type": "url"
+    },
+    "token": {
+      "type": "string"
+    }
+  }
+}
