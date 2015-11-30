@@ -26,6 +26,9 @@ class TemplateDSLink(dslink.DSLink):
         self.profile_manager.create_profile("create_bridge")
         self.profile_manager.register_callback("create_bridge", self.create_bridge)
 
+        self.profile_manager.create_profile("edit_bridge")
+        self.profile_manager.register_callback("edit_bridge", self.edit_bridge)
+
         self.profile_manager.create_profile("set_hex")
         self.profile_manager.register_callback("set_hex", self.set_hex)
 
@@ -160,9 +163,30 @@ class TemplateDSLink(dslink.DSLink):
         try:
             bridge_name = str(parameters.params["Bridge Name"])
             host = str(parameters.params["Host"])
+
             bridge_node = dslink.Node(bridge_name, self.super_root)
             bridge_node.set_attribute("@type", "bridge")
+
+            edit_bridge = dslink.Node("editBridge", bridge_node)
+            edit_bridge.set_display_name("Edit Bridge")
+            edit_bridge.set_profile("edit_bridge")
+            edit_bridge.set_parameters([
+                {
+                    "name": "Bridge Name",
+                    "type": "string",
+                    "default": bridge_name
+                },
+                {
+                    "name": "Host",
+                    "type": "string",
+                    "default": host
+                }
+            ])
+            edit_bridge.set_invokable("config")
+
+            bridge_node.add_child(edit_bridge)
             self.super_root.add_child(bridge_node)
+
             self.bridges[bridge_name] = Bridge(host)
             self.bridges[bridge_name].connect()
             self.bridges[bridge_name].get_light_objects("id")
@@ -179,6 +203,14 @@ class TemplateDSLink(dslink.DSLink):
                 True
             ]
         ]
+
+    def edit_bridge(self, parameters):
+        bridge_name = parameters.node.parent.name
+        self.super_root.remove_child(bridge_name)
+        del self.bridges[bridge_name]
+        self.create_bridge(parameters)
+
+        return []
 
     def set_hex(self, parameters):
         try:
