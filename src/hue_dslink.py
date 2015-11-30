@@ -56,6 +56,7 @@ class TemplateDSLink(dslink.DSLink):
 
         metric = dslink.Node("create_bridge", root)
         metric.set_profile("create_bridge")
+        metric.set_display_name("Add Bridge")
         metric.set_invokable(dslink.Permission.CONFIG)
         metric.set_parameters([
             {
