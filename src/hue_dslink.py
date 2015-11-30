@@ -2,7 +2,7 @@ import dslink
 import random
 from twisted.internet import reactor
 
-from phue import Bridge
+from phue import Bridge, PhueRegistrationException
 from rgb_cie import Converter
 
 import ssdp
@@ -34,7 +34,7 @@ class TemplateDSLink(dslink.DSLink):
 
         for child_name in self.super_root.children:
             child = self.super_root.children[child_name]
-            if "@type" in child.attributes and child.attributes["@type"] == "bridge" and child.value.has_value():
+            if "@type" in child.attributes and child.attributes["@type"] == "bridge":
                 self.bridges[child_name] = Bridge(child.get_value())
                 self.bridges[child_name].connect()
                 self.create_lights(child)
@@ -76,10 +76,12 @@ class TemplateDSLink(dslink.DSLink):
 
     def create_lights(self, bridge):
         if self.bridges[bridge.name] is None:
+            print("Bridge is None")
             return
 
-        for l in self.bridges[bridge.name].get_light_objects("id"):
-            node = dslink.Node("light_" + str(l.light_id), bridge)
+        for id in self.bridges[bridge.name].get_light_objects("id"):
+            l = self.bridges[bridge.name].get_light_objects("id")[id]
+            node = dslink.Node("light_" + str(id), bridge)
             node.set_transient(True)
             node.set_display_name(l.name)
             bridge.add_child(node)
@@ -155,16 +157,22 @@ class TemplateDSLink(dslink.DSLink):
         return bridge
 
     def create_bridge(self, parameters):
-        bridge_name = str(parameters.params["Bridge Name"])
-        host = str(parameters.params["Host"])
-        bridge_node = dslink.Node(bridge_name, self.super_root)
-        bridge_node.set_attribute("@type", "bridge")
-        self.super_root.add_child(bridge_node)
-        self.bridges[bridge_name] = Bridge(host)
-        self.bridges[bridge_name].connect()
-        self.bridges[bridge_name].get_light_objects("id")
-
-        self.create_lights(bridge_node)
+        try:
+            bridge_name = str(parameters.params["Bridge Name"])
+            host = str(parameters.params["Host"])
+            bridge_node = dslink.Node(bridge_name, self.super_root)
+            bridge_node.set_attribute("@type", "bridge")
+            self.super_root.add_child(bridge_node)
+            self.bridges[bridge_name] = Bridge(host)
+            self.bridges[bridge_name].connect()
+            self.bridges[bridge_name].get_light_objects("id")
+            self.create_lights(bridge_node)
+        except PhueRegistrationException:
+            return [
+                [
+                    False
+                ]
+            ]
 
         return [
             [
@@ -195,7 +203,7 @@ class TemplateDSLink(dslink.DSLink):
         try:
             id = int(parameters.node.parent.name.split("_")[1])
             val = parameters.value
-            bridge_name = str(parameters.node.parent.name)
+            bridge_name = str(parameters.node.parent.parent.name)
 
             metric = parameters.node.name
             light = self.bridges[bridge_name].get_light_objects("id")[id]
