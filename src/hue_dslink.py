@@ -39,10 +39,13 @@ class TemplateDSLink(dslink.DSLink):
         for child_name in self.super_root.children:
             child = self.super_root.children[child_name]
             if "@type" in child.attributes and child.attributes["@type"] == "bridge" and "@host" in child.attributes:
-                print(child.attributes["@host"])
-                self.bridges[child_name] = Bridge(child.attributes["@host"])
-                self.bridges[child_name].connect()
-                self.create_lights(child)
+                try:
+                    self.bridges[child_name] = Bridge(child.attributes["@host"])
+                    self.bridges[child_name].connect()
+                    self.create_lights(child)
+                    child.get("/status").set_value("Connected")
+                except:
+                    child.get("/status").set_value("Hue Connection Failed")
 
         reactor.callLater(0.1, self.poll)
 
@@ -163,50 +166,49 @@ class TemplateDSLink(dslink.DSLink):
         return bridge
 
     def create_bridge(self, parameters):
+        bridge_name = str(parameters.params["Bridge Name"])
+        host = str(parameters.params["Host"])
+
+        bridge_node = dslink.Node(bridge_name, self.super_root)
+        bridge_node.set_attribute("@type", "bridge")
+        bridge_node.set_attribute("@host", host)
+
+        edit_bridge = dslink.Node("editBridge", bridge_node)
+        edit_bridge.set_display_name("Edit Bridge")
+        edit_bridge.set_profile("edit_bridge")
+        edit_bridge.set_parameters([
+            {
+                "name": "Bridge Name",
+                "type": "string",
+                "default": bridge_name
+            },
+            {
+                "name": "Host",
+                "type": "string",
+                "default": host
+            }
+        ])
+        edit_bridge.set_invokable("config")
+
+        status = dslink.Node("status", bridge_node)
+        status.set_display_name("Status")
+        status.set_type("string")
+        status.set_value("Unknown")
+
+        bridge_node.add_child(edit_bridge)
+        self.super_root.add_child(bridge_node)
+
         try:
-            bridge_name = str(parameters.params["Bridge Name"])
-            host = str(parameters.params["Host"])
-
-            bridge_node = dslink.Node(bridge_name, self.super_root)
-            bridge_node.set_attribute("@type", "bridge")
-            bridge_node.set_attribute("@host", host)
-
-            edit_bridge = dslink.Node("editBridge", bridge_node)
-            edit_bridge.set_display_name("Edit Bridge")
-            edit_bridge.set_profile("edit_bridge")
-            edit_bridge.set_parameters([
-                {
-                    "name": "Bridge Name",
-                    "type": "string",
-                    "default": bridge_name
-                },
-                {
-                    "name": "Host",
-                    "type": "string",
-                    "default": host
-                }
-            ])
-            edit_bridge.set_invokable("config")
-
-            bridge_node.add_child(edit_bridge)
-            self.super_root.add_child(bridge_node)
-
             self.bridges[bridge_name] = Bridge(host)
             self.bridges[bridge_name].connect()
             self.bridges[bridge_name].get_light_objects("id")
             self.create_lights(bridge_node)
+            status.set_value("Connected")
         except PhueRegistrationException:
-            return [
-                [
-                    False
-                ]
-            ]
+            status.set_value("Hue Connection Failed")
+            return [[False]]
 
-        return [
-            [
-                True
-            ]
-        ]
+        return [[True]]
 
     def edit_bridge(self, parameters):
         bridge_name = parameters.node.parent.name
