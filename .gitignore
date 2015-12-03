@@ -5,3 +5,4 @@ nodes.json.bak
 *.iml
 *.egg-info/
 dist/
+packages/
