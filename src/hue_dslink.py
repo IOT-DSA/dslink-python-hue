@@ -1,5 +1,6 @@
 import dslink
 import random
+import logging
 from twisted.internet import reactor
 
 from phue import Bridge, PhueRegistrationException
@@ -37,8 +38,9 @@ class TemplateDSLink(dslink.DSLink):
 
         for child_name in self.super_root.children:
             child = self.super_root.children[child_name]
-            if "@type" in child.attributes and child.attributes["@type"] == "bridge":
-                self.bridges[child_name] = Bridge(child.get_value())
+            if "@type" in child.attributes and child.attributes["@type"] == "bridge" and "@host" in child.attributes:
+                print(child.attributes["@host"])
+                self.bridges[child_name] = Bridge(child.attributes["@host"])
                 self.bridges[child_name].connect()
                 self.create_lights(child)
 
@@ -167,6 +169,7 @@ class TemplateDSLink(dslink.DSLink):
 
             bridge_node = dslink.Node(bridge_name, self.super_root)
             bridge_node.set_attribute("@type", "bridge")
+            bridge_node.set_attribute("@host", host)
 
             edit_bridge = dslink.Node("editBridge", bridge_node)
             edit_bridge.set_display_name("Edit Bridge")

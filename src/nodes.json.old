@@ -1,0 +1,51 @@
+{
+  "$is": "node", 
+  "create_bridge": {
+    "$columns": [
+      {
+        "name": "Success", 
+        "type": "bool"
+      }
+    ], 
+    "$invokable": "config", 
+    "$is": "create_bridge", 
+    "$name": "Add Bridge", 
+    "$params": [
+      {
+        "name": "Bridge Name", 
+        "type": "string"
+      }, 
+      {
+        "name": "Host", 
+        "type": "string"
+      }
+    ]
+  }, 
+  "hueBridge": {
+    "$is": "node", 
+    "@type": "bridge", 
+    "editBridge": {
+      "$invokable": "config", 
+      "$is": "edit_bridge", 
+      "$name": "Edit Bridge", 
+      "$params": [
+        {
+          "default": "hueBridge", 
+          "name": "Bridge Name", 
+          "type": "string"
+        }, 
+        {
+          "default": "10.0.11.100", 
+          "name": "Host", 
+          "type": "string"
+        }
+      ]
+    }
+  }, 
+  "updateRate": {
+    "$is": "set_speed", 
+    "$type": "number", 
+    "$writable": "write", 
+    "?value": 1
+  }
+}
