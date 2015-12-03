@@ -2,7 +2,7 @@
   "name": "dslink-python-hue",
   "version": "0.1.0",
   "description": "Philips HUE DSLink for Python",
-  "main": "src/TemplateDSLink.py",
+  "main": "src/hue_dslink.py",
   "engines": {
     "packages/bin/python": ">=2.7.0"
   },
