@@ -213,7 +213,10 @@ class TemplateDSLink(dslink.DSLink):
     def edit_bridge(self, parameters):
         bridge_name = parameters.node.parent.name
         self.super_root.remove_child(bridge_name)
-        del self.bridges[bridge_name]
+        try:
+            del self.bridges[bridge_name]
+        except KeyError:
+            pass
         self.create_bridge(parameters)
 
         return []
