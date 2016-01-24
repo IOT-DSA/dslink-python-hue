@@ -3,7 +3,7 @@ import random
 import logging
 from twisted.internet import reactor
 
-from phue import Bridge, PhueRegistrationExceptionp
+from phue import Bridge, PhueRegistrationException
 from rgb_cie import Converter
 
 import ssdp
