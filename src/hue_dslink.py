@@ -228,7 +228,7 @@ class TemplateDSLink(dslink.DSLink):
             val = parameters.params["value"]
             val = val.replace("#", "")
             self.bridges[bridge_name].get_light_objects("id")[id].xy = converter.hexToCIE1931(val)
-        except Exception, e:
+        except Exception as e:
             print "Exception: %s" % e
 
         return [
