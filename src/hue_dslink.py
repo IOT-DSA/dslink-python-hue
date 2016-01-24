@@ -3,7 +3,7 @@ import random
 import logging
 from twisted.internet import reactor
 
-from phue import Bridge, PhueRegistrationException
+from phue import Bridge, PhueRegistrationExceptionp
 from rgb_cie import Converter
 
 import ssdp
@@ -229,7 +229,7 @@ class TemplateDSLink(dslink.DSLink):
             val = val.replace("#", "")
             self.bridges[bridge_name].get_light_objects("id")[id].xy = converter.hexToCIE1931(val)
         except Exception as e:
-            print "Exception: %s" % e
+            print("Exception: %s" % e)
 
         return [
             [
@@ -251,7 +251,7 @@ class TemplateDSLink(dslink.DSLink):
 
             setattr(light, metric, val)
         except Exception, e:
-            print "Exception: %s" % e
+            print("Exception: %s" % e)
 
         return [
             [
@@ -284,7 +284,7 @@ class TemplateDSLink(dslink.DSLink):
                     hex = converter.CIE1931ToHex(light_xy[0], light_xy[1], bri=0.5)
                     self.super_root.get(cur_node+"/hex").set_value("#"+hex)'''
             except Exception, e:
-                print "Poll Loop Exception: %s" % e
+                print("Poll Loop Exception: %s" % e)
 
         time = self.super_root.get("/updateRate")
         if time.value.has_value():
