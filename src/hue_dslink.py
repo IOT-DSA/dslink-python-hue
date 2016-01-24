@@ -196,6 +196,7 @@ class TemplateDSLink(dslink.DSLink):
         status.set_value("Unknown")
 
         bridge_node.add_child(edit_bridge)
+        bridge_node.add_child(status)
         self.super_root.add_child(bridge_node)
 
         try:
