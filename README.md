@@ -1,2 +1,2 @@
-# Python Hue DSLink
-This is a simple codebase to base simple polling DSLinks from.
+# Philips Hue DSLink
+A DSLink to control Philips Hue lightbulbs and other products via the Philips Hue bridge API.
