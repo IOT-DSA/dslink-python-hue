@@ -6,3 +6,4 @@ nodes.json.bak
 *.egg-info/
 dist/
 packages/
+*.pyc

@@ -14,7 +14,7 @@ converter = Converter()
 lights[1].xy = converter.hexToCIE1931('ff0000')'''
 
 
-class TemplateDSLink(dslink.DSLink):
+class HueDSLink(dslink.DSLink):
     def __init__(self, config):
         self.random = random.Random()
         self.bridges = {}
@@ -37,7 +37,7 @@ class TemplateDSLink(dslink.DSLink):
         self.responder.profile_manager.register_set_callback("set", self.set_callback)
 
         self.responder.profile_manager.create_profile("reconnect")
-        self.responder.profile_manager.register_set_callback("reconnect", self.reconnect)
+        self.responder.profile_manager.register_callback("reconnect", self.reconnect)
 
         for child_name in self.responder.super_root.children:
             child = self.responder.super_root.children[child_name]
