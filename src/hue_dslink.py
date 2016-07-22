@@ -352,4 +352,4 @@ class HueDSLink(dslink.DSLink):
 
 
 if __name__ == "__main__":
-    TemplateDSLink(dslink.Configuration(name="PhilipsHue", responder=True))
+    HueDSLink(dslink.Configuration(name="PhilipsHue", responder=True))
