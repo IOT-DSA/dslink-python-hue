@@ -5,6 +5,13 @@ from twisted.internet import reactor
 from phue import Bridge, PhueRegistrationException
 from rgb_cie import Converter
 
+_NUMERALS = '0123456789abcdefABCDEF'
+_HEXDEC = {v: int(v, 16) for v in (x+y for x in _NUMERALS for y in _NUMERALS)}
+
+
+def rgb(triplet):
+    return _HEXDEC[triplet[0:2]], _HEXDEC[triplet[2:4]], _HEXDEC[triplet[4:6]]
+
 converter = Converter()
 
 '''for l in b.lights:
@@ -151,7 +158,6 @@ class HueDSLink(dslink.DSLink):
             metric = dslink.Node("colormode", node)
             metric.set_type(dslink.Value.build_enum(["hs", "xy", "ct"]))
             metric.set_profile("set")
-            metric.set_config("$writable", "write")
             node.add_child(metric)
 
             metric = dslink.Node("alert", node)
@@ -279,8 +285,7 @@ class HueDSLink(dslink.DSLink):
             id = int(parameters[0].parent.name.split("_")[1])
             bridge_name = parameters[0].parent.parent.name
             val = parameters[1]["value"]
-            val = val.replace("#", "")
-            self.bridges[bridge_name].get_light_objects("id")[id].xy = converter.hexToCIE1931(val)
+            self.bridges[bridge_name].get_light_objects("id")[id].xy = converter.hexToCIE1931(hex(int(val))[2:].zfill(6))
         except Exception as e:
             print("Exception: %s" % e)
             return [
