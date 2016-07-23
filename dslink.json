@@ -1,6 +1,6 @@
 {
   "name": "dslink-python-hue",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Philips Hue DSLink",
   "main": "src/hue_dslink.py",
   "engines": {
